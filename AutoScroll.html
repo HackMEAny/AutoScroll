@@ -26,7 +26,7 @@
         color: var(--text-color);
       }
 
-      .dark-mode {
+      body.dark-mode {
         --background-color: #202124;
         --text-color: #e8eaed;
         --button-bg-color: #8ab4f8;
@@ -151,24 +151,6 @@
         color: gray;
         margin-top: 10px;
       }
-
-      .loading .timer-progress {
-        animation: loading 1.5s linear infinite;
-      }
-
-      @keyframes loading {
-        0% {
-          stroke-dashoffset: 251.32;
-        }
-        50% {
-          stroke-dashoffset: 125.66;
-          transform: rotate(180deg);
-        }
-        100% {
-          stroke-dashoffset: 0;
-          transform: rotate(360deg);
-        }
-      }
     </style>
   </head>
   <body>
@@ -180,6 +162,13 @@
         <span>Auto-Scroll</span>
         <label class="switch">
           <input type="checkbox" id="toggleSwitch" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-switch">
+        <span>Dark Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="darkModeToggle" />
           <span class="slider"></span>
         </label>
       </div>

@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const timerProgress = document.querySelector(".timer-progress");
   const timerText = document.querySelector(".timer-text");
   const toggleSwitch = document.getElementById("toggleSwitch");
+  const darkModeToggle = document.getElementById("darkModeToggle");
 
   const circumference = 2 * Math.PI * 37; // Radius is 37
   timerProgress.style.strokeDasharray = circumference;
@@ -10,7 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to set the theme
   const setTheme = (theme) => {
-    document.body.className = theme;
+    if (theme === "dark-mode") {
+      document.body.classList.add("dark-mode");
+      darkModeToggle.checked = true;
+    } else {
+      document.body.classList.remove("dark-mode");
+      darkModeToggle.checked = false;
+    }
   };
 
   // Check for saved theme
@@ -29,10 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const isRunning = message.status === "Running";
       statusDiv.textContent = "Status: " + message.status;
       toggleSwitch.checked = isRunning;
-      if (isRunning) {
-        timerProgress.classList.remove("loading");
-      } else {
-        timerProgress.classList.add("loading");
+      if (!isRunning) {
         timerText.textContent = "--:--";
         timerProgress.style.strokeDashoffset = circumference;
       }
@@ -52,14 +56,14 @@ document.addEventListener("DOMContentLoaded", () => {
           timerProgress.style.stroke = "#ff8800";
           timerText.style.color = "#ff8800";
         } else {
-          timerProgress.style.stroke = "#4285f4";
-          timerText.style.color = ""; // Use default color
+          timerProgress.style.stroke = "var(--timer-progress-color)";
+          timerText.style.color = "var(--text-color)";
         }
       }
     }
   });
 
-  // Handle toggle switch changes
+  // Handle auto-scroll toggle switch changes
   toggleSwitch.addEventListener("change", () => {
     if (toggleSwitch.checked) {
       chrome.runtime.sendMessage({ type: "START_AUTO_SCROLL" });
@@ -68,15 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Simple dark mode toggle for demonstration
-  // In a real extension, you might want a dedicated button for this
-  document.querySelector(".title").addEventListener("click", () => {
-    if (document.body.classList.contains("dark-mode")) {
-      setTheme("");
-      chrome.storage.local.set({ theme: "" });
-    } else {
-      setTheme("dark-mode");
-      chrome.storage.local.set({ theme: "dark-mode" });
-    }
+  // Handle dark mode toggle switch changes
+  darkModeToggle.addEventListener("change", () => {
+    const theme = darkModeToggle.checked ? "dark-mode" : "";
+    setTheme(theme);
+    chrome.storage.local.set({ theme: theme });
   });
 });

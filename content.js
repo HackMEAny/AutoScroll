@@ -6,24 +6,49 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
   let videoEndHandler = null;
   let timerInterval = null;
 
-  // Listen for messages from popup via background
+  const initialize = () => {
+    chrome.storage.local.get("autoScrollStatus", (result) => {
+      if (result.autoScrollStatus === "Running") {
+        isAutoScrolling = true;
+        startAutoScroll();
+      }
+    });
+  };
+
+  if (document.readyState === "loading") {
+    window.addEventListener("load", initialize);
+  } else {
+    initialize();
+  }
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "START_AUTO_SCROLL") {
-      isAutoScrolling = true;
-      chrome.runtime.sendMessage({
-        type: "UPDATE_POPUP_STATUS",
-        status: "Running",
-      });
-      startAutoScroll();
+      if (!isAutoScrolling) {
+        isAutoScrolling = true;
+        startAutoScroll();
+      }
     } else if (request.type === "STOP_AUTO_SCROLL") {
-      isAutoScrolling = false;
-      chrome.runtime.sendMessage({
-        type: "UPDATE_POPUP_STATUS",
-        status: "Stopped",
-      });
-      stopAutoScroll();
+      if (isAutoScrolling) {
+        isAutoScrolling = false;
+        stopAutoScroll();
+      }
     }
   });
+
+  function isSponsored(videoElement) {
+    let parent = videoElement.parentElement;
+    for (let i = 0; i < 10; i++) {
+      if (!parent) return false;
+      const sponsoredText = Array.from(
+        parent.querySelectorAll("span, div, a")
+      ).find((el) => el.textContent.trim() === "Sponsored");
+      if (sponsoredText) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+    return false;
+  }
 
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
@@ -37,7 +62,6 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
     if (currentVideo) {
       const currentTime = currentVideo.currentTime;
       const duration = currentVideo.duration;
-
       if (!isNaN(duration) && duration > 0) {
         const timeRemaining = duration - currentTime;
         chrome.runtime.sendMessage({
@@ -56,15 +80,11 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
       'div[aria-label="Next"]',
       'div[data-name="RightColumn"] div[role="button"]',
     ];
-
     let nextButton = null;
     for (const selector of nextButtonSelectors) {
       nextButton = document.querySelector(selector);
-      if (nextButton) {
-        break;
-      }
+      if (nextButton) break;
     }
-
     if (nextButton) {
       nextButton.click();
     } else {
@@ -75,7 +95,14 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
   function getCurrentVideo() {
     const videos = document.querySelectorAll("video");
     for (const video of videos) {
-      if (!video.paused && !video.ended && video.currentTime > 0) {
+      // A more robust check for the currently active video
+      const rect = video.getBoundingClientRect();
+      if (
+        rect.top >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        video.currentTime > 0 &&
+        !video.paused
+      ) {
         return video;
       }
     }
@@ -88,16 +115,13 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
         clearInterval(timerInterval);
         timerInterval = null;
       }
-
       chrome.runtime.sendMessage({
         type: "UPDATE_TIMER",
         time: "00:00",
         progress: 100,
       });
-
       triggerNextReel();
       currentVideo = null;
-
       setTimeout(() => {
         if (isAutoScrolling) {
           startAutoScroll();
@@ -110,51 +134,55 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
     if (!isAutoScrolling) return;
 
     const video = getCurrentVideo();
+    let nextCheckDelay = 500;
 
-    if (video && video !== currentVideo) {
-      currentVideo = video;
-
-      if (timerInterval) {
-        clearInterval(timerInterval);
+    if (video) {
+      if (!currentVideo || video.src !== currentVideo.src) {
+        if (isSponsored(video)) {
+          triggerNextReel();
+          nextCheckDelay = 1500; // Wait longer after skipping an ad
+        } else {
+          currentVideo = video;
+          if (timerInterval) clearInterval(timerInterval);
+          if (videoEndHandler)
+            currentVideo.removeEventListener("ended", videoEndHandler);
+          videoEndHandler = onVideoEnd.bind(this);
+          video.addEventListener("ended", videoEndHandler);
+          timerInterval = setInterval(updateTimer, 1000);
+        }
       }
-
-      if (videoEndHandler) {
-        currentVideo.removeEventListener("ended", videoEndHandler);
-      }
-
-      videoEndHandler = onVideoEnd.bind(this);
-      video.addEventListener("ended", videoEndHandler);
-
-      timerInterval = setInterval(updateTimer, 1000);
     }
 
     if (currentVideo) {
       updateTimer();
     }
 
-    if (isAutoScrolling) {
-      setTimeout(monitorVideo, 500);
-    }
+    setTimeout(monitorVideo, nextCheckDelay);
   }
 
   function startAutoScroll() {
     if (!isAutoScrolling) return;
+    chrome.runtime.sendMessage({
+      type: "UPDATE_POPUP_STATUS",
+      status: "Running",
+    });
     monitorVideo();
   }
 
   function stopAutoScroll() {
     isAutoScrolling = false;
     currentVideo = null;
-
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
     }
-
     if (videoEndHandler && currentVideo) {
       currentVideo.removeEventListener("ended", videoEndHandler);
     }
-
+    chrome.runtime.sendMessage({
+      type: "UPDATE_POPUP_STATUS",
+      status: "Stopped",
+    });
     chrome.runtime.sendMessage({
       type: "UPDATE_TIMER",
       time: "--:--",
