@@ -1,83 +1,82 @@
 document.addEventListener("DOMContentLoaded", () => {
   const statusDiv = document.getElementById("status");
-  const timerTextDiv = document.getElementById("timer-text");
   const timerProgress = document.querySelector(".timer-progress");
   const timerText = document.querySelector(".timer-text");
+  const toggleSwitch = document.getElementById("toggleSwitch");
+
+  const circumference = 2 * Math.PI * 37; // Radius is 37
+  timerProgress.style.strokeDasharray = circumference;
+  timerProgress.style.strokeDashoffset = circumference;
+
+  // Function to set the theme
+  const setTheme = (theme) => {
+    document.body.className = theme;
+  };
+
+  // Check for saved theme
+  chrome.storage.local.get("theme", (data) => {
+    if (data.theme) {
+      setTheme(data.theme);
+    }
+  });
 
   // Request current status when popup opens
   chrome.runtime.sendMessage({ type: "GET_STATUS" });
 
   // Listen for status updates from background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Popup received message:", message);
     if (message.type === "UPDATE_POPUP_STATUS") {
+      const isRunning = message.status === "Running";
       statusDiv.textContent = "Status: " + message.status;
-      // Remove loading animation when status is received
-      if (message.status !== "Loading...") {
+      toggleSwitch.checked = isRunning;
+      if (isRunning) {
         timerProgress.classList.remove("loading");
+      } else {
+        timerProgress.classList.add("loading");
+        timerText.textContent = "--:--";
+        timerProgress.style.strokeDashoffset = circumference;
       }
     } else if (message.type === "UPDATE_TIMER") {
-      // Update timer text
-      timerTextDiv.textContent = "Timer: " + message.time;
-
-      // Update progress circle
       if (message.progress !== undefined) {
         const progress = message.progress;
-        const circumference = 2 * Math.PI * 20; // 20 is the radius
-        // Reverse the progress so circle decreases as time decreases
-        const reversedProgress = 100 - progress;
-        const offset = circumference - (reversedProgress / 100) * circumference;
+        const offset = circumference - (progress / 100) * circumference;
 
-        timerProgress.style.strokeDasharray = circumference;
         timerProgress.style.strokeDashoffset = offset;
-        // Show time remaining instead of percentage
         timerText.textContent = message.time;
 
-        // Change color based on progress (time remaining)
+        // Change color based on progress
         if (progress < 25) {
-          // Less than 25% time remaining - red
           timerProgress.style.stroke = "#ff4444";
           timerText.style.color = "#ff4444";
         } else if (progress < 50) {
-          // Less than 50% time remaining - orange
           timerProgress.style.stroke = "#ff8800";
           timerText.style.color = "#ff8800";
         } else {
-          // More than 50% time remaining - blue
           timerProgress.style.stroke = "#4285f4";
-          timerText.style.color = "#333";
-        }
-
-        // Add animation class when timer is active
-        if (progress > 0 && progress < 100) {
-          timerProgress.classList.remove("loading");
-        } else {
-          // Add loading animation when not active
-          if (message.time === "--:--") {
-            timerProgress.classList.add("loading");
-          } else {
-            timerProgress.classList.remove("loading");
-          }
+          timerText.style.color = ""; // Use default color
         }
       }
     }
   });
 
-  // Start auto-scroll button
-  document.getElementById("startBtn").addEventListener("click", () => {
-    console.log("Start button clicked");
-    // Send message to background script which will forward to content script
-    chrome.runtime.sendMessage({
-      type: "START_AUTO_SCROLL",
-    });
+  // Handle toggle switch changes
+  toggleSwitch.addEventListener("change", () => {
+    if (toggleSwitch.checked) {
+      chrome.runtime.sendMessage({ type: "START_AUTO_SCROLL" });
+    } else {
+      chrome.runtime.sendMessage({ type: "STOP_AUTO_SCROLL" });
+    }
   });
 
-  // Stop auto-scroll button
-  document.getElementById("stopBtn").addEventListener("click", () => {
-    console.log("Stop button clicked");
-    // Send message to background script which will forward to content script
-    chrome.runtime.sendMessage({
-      type: "STOP_AUTO_SCROLL",
-    });
+  // Simple dark mode toggle for demonstration
+  // In a real extension, you might want a dedicated button for this
+  document.querySelector(".title").addEventListener("click", () => {
+    if (document.body.classList.contains("dark-mode")) {
+      setTheme("");
+      chrome.storage.local.set({ theme: "" });
+    } else {
+      setTheme("dark-mode");
+      chrome.storage.local.set({ theme: "dark-mode" });
+    }
   });
 });

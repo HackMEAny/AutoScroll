@@ -1,106 +1,205 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <title>Facebook Reels AutoScroll</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --background-color: #ffffff;
+        --text-color: #333333;
+        --button-bg-color: #4285f4;
+        --button-text-color: #ffffff;
+        --card-bg-color: #f8f9fa;
+        --border-color: #e0e0e0;
+        --timer-bg-color: #e0e0e0;
+        --timer-progress-color: #4285f4;
+      }
+
       body {
-        width: 200px;
-        padding: 10px;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
+        width: 250px;
+        padding: 15px;
+        font-family: "Roboto", sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
       }
-      button {
-        display: block;
-        width: 100%;
-        margin: 5px 0;
-        padding: 10px;
-        font-size: 14px;
-        cursor: pointer;
+
+      .dark-mode {
+        --background-color: #202124;
+        --text-color: #e8eaed;
+        --button-bg-color: #8ab4f8;
+        --button-text-color: #202124;
+        --card-bg-color: #303134;
+        --border-color: #5f6368;
+        --timer-bg-color: #5f6368;
       }
-      #status {
+
+      .card {
+        background-color: var(--card-bg-color);
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
         text-align: center;
-        margin-top: 10px;
-        font-size: 12px;
-        color: gray;
+        margin-bottom: 15px;
       }
+
+      .title {
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .toggle-switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--button-bg-color);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(16px);
+      }
+
       .timer-container {
         text-align: center;
         margin-top: 10px;
       }
-      #timer-text {
-        font-size: 12px;
-        color: #333;
-        font-weight: bold;
-        margin-bottom: 5px;
-      }
+
       .timer-circle {
         position: relative;
-        width: 50px;
-        height: 50px;
-        margin: 0 auto;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 10px;
       }
-      .timer-bg {
-        fill: none;
-        stroke: #e0e0e0;
-        stroke-width: 4;
-      }
+
+      .timer-bg,
       .timer-progress {
         fill: none;
-        stroke: #4285f4;
-        stroke-width: 4;
+        stroke-width: 6;
+      }
+
+      .timer-bg {
+        stroke: var(--timer-bg-color);
+      }
+
+      .timer-progress {
+        stroke: var(--timer-progress-color);
         stroke-linecap: round;
         transform: rotate(-90deg);
         transform-origin: 50% 50%;
-        transition: stroke-dashoffset 1s linear, stroke 1s linear;
+        transition: stroke-dashoffset 0.3s linear, stroke 0.3s linear;
       }
-      .timer-center {
-        fill: #fff;
-        stroke: #e0e0e0;
-        stroke-width: 1;
-      }
+
       .timer-text {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 8px;
-        font-weight: bold;
-        color: #333;
-        transition: color 1s linear;
+        font-size: 18px;
+        font-weight: 500;
+        transition: color 0.3s linear;
       }
+
+      #status {
+        text-align: center;
+        font-size: 12px;
+        color: gray;
+        margin-top: 10px;
+      }
+
+      .loading .timer-progress {
+        animation: loading 1.5s linear infinite;
+      }
+
       @keyframes loading {
         0% {
-          transform: translate(-50%, -50%) rotate(0deg);
+          stroke-dashoffset: 251.32;
+        }
+        50% {
+          stroke-dashoffset: 125.66;
+          transform: rotate(180deg);
         }
         100% {
-          transform: translate(-50%, -50%) rotate(360deg);
+          stroke-dashoffset: 0;
+          transform: rotate(360deg);
         }
-      }
-      .loading {
-        animation: loading 1s linear infinite;
       }
     </style>
   </head>
   <body>
-    <button id="startBtn">Start Auto-Scroll</button>
-    <button id="stopBtn">Stop Auto-Scroll</button>
-    <div id="status">Status: Loading...</div>
-    <div class="timer-container">
-      <div id="timer-text">Timer: --:--</div>
-      <div class="timer-circle">
-        <svg width="50" height="50">
-          <circle class="timer-bg" cx="25" cy="25" r="20"></circle>
-          <circle
-            class="timer-progress loading"
-            cx="25"
-            cy="25"
-            r="20"
-            stroke-dasharray="125.66"
-            stroke-dashoffset="125.66"
-          ></circle>
-          <circle class="timer-center" cx="25" cy="25" r="3"></circle>
-        </svg>
-        <div class="timer-text">--:--</div>
+    <div class="card">
+      <div class="header">
+        <div class="title">FB Reels AutoScroll</div>
       </div>
+      <div class="toggle-switch">
+        <span>Auto-Scroll</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleSwitch" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="timer-container">
+        <div class="timer-circle">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="timer-bg" cx="40" cy="40" r="37"></circle>
+            <circle
+              class="timer-progress"
+              cx="40"
+              cy="40"
+              r="37"
+              stroke-dasharray="232.47"
+              stroke-dashoffset="232.47"
+            ></circle>
+          </svg>
+          <div class="timer-text">--:--</div>
+        </div>
+      </div>
+      <div id="status">Status: Idle</div>
     </div>
     <script src="popup.js"></script>
   </body>
