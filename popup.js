@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const timerText = document.querySelector(".timer-text");
   const toggleSwitch = document.getElementById("toggleSwitch");
   const darkModeToggle = document.getElementById("darkModeToggle");
+  const speedControl = document.getElementById("speedControl");
+  const durationControl = document.getElementById("durationControl");
 
   const circumference = 2 * Math.PI * 37; // Radius is 37
   timerProgress.style.strokeDasharray = circumference;
@@ -20,12 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Check for saved theme
-  chrome.storage.local.get("theme", (data) => {
-    if (data.theme) {
-      setTheme(data.theme);
+  // Check for saved theme, speed, and duration settings
+  chrome.storage.local.get(
+    ["theme", "playbackSpeed", "watchDuration"],
+    (data) => {
+      if (data.theme) {
+        setTheme(data.theme);
+      }
+      if (data.playbackSpeed) {
+        speedControl.value = data.playbackSpeed;
+      }
+      if (data.watchDuration) {
+        durationControl.value = data.watchDuration;
+      }
     }
-  });
+  );
 
   // Request current status when popup opens
   chrome.runtime.sendMessage({ type: "GET_STATUS" });
@@ -71,11 +82,28 @@ document.addEventListener("DOMContentLoaded", () => {
       chrome.runtime.sendMessage({ type: "STOP_AUTO_SCROLL" });
     }
   });
-
   // Handle dark mode toggle switch changes
   darkModeToggle.addEventListener("change", () => {
     const theme = darkModeToggle.checked ? "dark-mode" : "";
     setTheme(theme);
     chrome.storage.local.set({ theme: theme });
+  });
+  // Handle speed control changes
+  speedControl.addEventListener("change", () => {
+    const speed = speedControl.value;
+    console.log("Speed control changed to:", speed);
+    chrome.storage.local.set({ playbackSpeed: speed });
+    chrome.runtime.sendMessage({ type: "SET_PLAYBACK_SPEED", speed: speed });
+  });
+
+  // Handle duration control changes
+  durationControl.addEventListener("change", () => {
+    const duration = durationControl.value;
+    console.log("Duration control changed to:", duration);
+    chrome.storage.local.set({ watchDuration: duration });
+    chrome.runtime.sendMessage({
+      type: "SET_WATCH_DURATION",
+      duration: duration,
+    });
   });
 });

@@ -41,6 +41,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   } else if (message.type === "UPDATE_POPUP_STATUS") {
     updatePopupStatus(message.status);
+  } else if (message.type === "SET_PLAYBACK_SPEED") {
+    console.log("Received SET_PLAYBACK_SPEED message, speed:", message.speed);
+    // Forward speed setting to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0] && tabs[0].id) {
+        console.log("Forwarding SET_PLAYBACK_SPEED to content script");
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: "SET_PLAYBACK_SPEED",
+          speed: message.speed,
+        });
+      }
+    });
+  } else if (message.type === "SET_WATCH_DURATION") {
+    console.log(
+      "Received SET_WATCH_DURATION message, duration:",
+      message.duration
+    );
+    // Forward duration setting to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0] && tabs[0].id) {
+        console.log("Forwarding SET_WATCH_DURATION to content script");
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: "SET_WATCH_DURATION",
+          duration: message.duration,
+        });
+      }
+    });
   }
 });
 

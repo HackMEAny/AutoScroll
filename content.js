@@ -5,14 +5,28 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
   let currentVideo = null;
   let videoEndHandler = null;
   let timerInterval = null;
+  let playbackSpeed = 1.0; // Default playback speed
+  let watchDuration = "full"; // Default watch duration (full video)
+  let customDurationTimer = null; // Timer for custom duration
 
   const initialize = () => {
-    chrome.storage.local.get("autoScrollStatus", (result) => {
-      if (result.autoScrollStatus === "Running") {
-        isAutoScrolling = true;
-        startAutoScroll();
+    chrome.storage.local.get(
+      ["autoScrollStatus", "playbackSpeed", "watchDuration"],
+      (result) => {
+        if (result.autoScrollStatus === "Running") {
+          isAutoScrolling = true;
+          startAutoScroll();
+        }
+        if (result.playbackSpeed) {
+          playbackSpeed = parseFloat(result.playbackSpeed);
+          console.log("Loaded playback speed from storage:", playbackSpeed);
+        }
+        if (result.watchDuration) {
+          watchDuration = result.watchDuration;
+          console.log("Loaded watch duration from storage:", watchDuration);
+        }
       }
-    });
+    );
   };
 
   if (document.readyState === "loading") {
@@ -31,6 +45,58 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
       if (isAutoScrolling) {
         isAutoScrolling = false;
         stopAutoScroll();
+      }
+    } else if (request.type === "SET_PLAYBACK_SPEED") {
+      playbackSpeed = parseFloat(request.speed);
+      console.log("Setting playback speed to:", playbackSpeed);
+      // Apply speed to current video if one is playing
+      if (currentVideo) {
+        try {
+          console.log("Video element:", currentVideo);
+          console.log(
+            "Video playbackRate property:",
+            currentVideo.playbackRate
+          );
+          console.log(
+            "Video playbackRate property writable:",
+            Object.getOwnPropertyDescriptor(
+              Object.getPrototypeOf(currentVideo),
+              "playbackRate"
+            )
+          );
+          currentVideo.playbackRate = playbackSpeed;
+          console.log(
+            "Applied playback speed to current video:",
+            currentVideo.playbackRate
+          );
+        } catch (error) {
+          console.error("Failed to set playback rate:", error);
+        }
+      }
+    } else if (request.type === "SET_WATCH_DURATION") {
+      console.log(
+        "Received SET_WATCH_DURATION message, duration:",
+        request.duration
+      );
+      watchDuration = request.duration;
+      console.log("Set watchDuration to:", watchDuration);
+      // Clear any existing custom duration timer
+      if (customDurationTimer) {
+        console.log("Clearing existing custom duration timer");
+        clearTimeout(customDurationTimer);
+        customDurationTimer = null;
+      }
+      // If we have a current video and a custom duration is set, start the timer
+      if (currentVideo && watchDuration !== "full") {
+        console.log("Starting custom duration timer for current video");
+        startCustomDurationTimer();
+      } else {
+        console.log(
+          "Not starting custom duration timer - currentVideo:",
+          currentVideo,
+          "watchDuration:",
+          watchDuration
+        );
       }
     }
   });
@@ -74,6 +140,7 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
   }
 
   function triggerNextReel() {
+    console.log("triggerNextReel called");
     const nextButtonSelectors = [
       '[aria-label="Next card"]',
       'div[role="button"][tabindex="0"] > div > div > div:nth-child(2)',
@@ -83,11 +150,14 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
     let nextButton = null;
     for (const selector of nextButtonSelectors) {
       nextButton = document.querySelector(selector);
+      console.log("Trying selector:", selector, "found:", nextButton);
       if (nextButton) break;
     }
     if (nextButton) {
+      console.log("Clicking next button");
       nextButton.click();
     } else {
+      console.log("No next button found, scrolling by window height");
       window.scrollBy(0, window.innerHeight);
     }
   }
@@ -97,12 +167,7 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
     for (const video of videos) {
       // A more robust check for the currently active video
       const rect = video.getBoundingClientRect();
-      if (
-        rect.top >= 0 &&
-        rect.bottom <= window.innerHeight &&
-        video.currentTime > 0 &&
-        !video.paused
-      ) {
+      if (rect.top >= 0 && rect.bottom <= window.innerHeight && !video.paused) {
         return video;
       }
     }
@@ -110,8 +175,11 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
   }
 
   function onVideoEnd() {
+    console.log("onVideoEnd called, isAutoScrolling:", isAutoScrolling);
     if (isAutoScrolling) {
+      console.log("Processing video end");
       if (timerInterval) {
+        console.log("Clearing timer interval");
         clearInterval(timerInterval);
         timerInterval = null;
       }
@@ -120,13 +188,55 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
         time: "00:00",
         progress: 100,
       });
+      console.log("Triggering next reel");
       triggerNextReel();
       currentVideo = null;
+      // Clear custom duration timer
+      if (customDurationTimer) {
+        console.log("Clearing custom duration timer");
+        clearTimeout(customDurationTimer);
+        customDurationTimer = null;
+      }
       setTimeout(() => {
         if (isAutoScrolling) {
+          console.log("Restarting auto scroll");
           startAutoScroll();
         }
       }, 1000);
+    }
+  }
+
+  function startCustomDurationTimer() {
+    console.log(
+      "Starting custom duration timer, watchDuration:",
+      watchDuration,
+      "currentVideo:",
+      currentVideo
+    );
+    // Clear any existing timer
+    if (customDurationTimer) {
+      console.log("Clearing existing custom duration timer");
+      clearTimeout(customDurationTimer);
+      customDurationTimer = null;
+    }
+
+    // Only start timer if we have a custom duration (not "full")
+    if (watchDuration !== "full" && currentVideo) {
+      const durationSeconds = parseInt(watchDuration);
+      console.log(
+        "Setting custom duration timer for",
+        durationSeconds,
+        "seconds"
+      );
+      if (!isNaN(durationSeconds) && durationSeconds > 0) {
+        customDurationTimer = setTimeout(() => {
+          console.log("Custom duration timer expired, triggering next reel");
+          // Trigger next reel when custom duration is reached
+          if (isAutoScrolling) {
+            onVideoEnd();
+          }
+        }, durationSeconds * 1000);
+      }
     }
   }
 
@@ -143,12 +253,52 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
           nextCheckDelay = 1500; // Wait longer after skipping an ad
         } else {
           currentVideo = video;
+          // Apply playback speed to the new video
+          console.log(
+            "Detected new video, applying playback speed:",
+            playbackSpeed
+          );
+          try {
+            console.log("Video element:", currentVideo);
+            console.log(
+              "Video playbackRate property:",
+              currentVideo.playbackRate
+            );
+            console.log(
+              "Video playbackRate property writable:",
+              Object.getOwnPropertyDescriptor(
+                Object.getPrototypeOf(currentVideo),
+                "playbackRate"
+              )
+            );
+            currentVideo.playbackRate = playbackSpeed;
+            console.log(
+              "Playback speed applied, current rate:",
+              currentVideo.playbackRate
+            );
+          } catch (error) {
+            console.error("Failed to set playback rate on new video:", error);
+          }
           if (timerInterval) clearInterval(timerInterval);
           if (videoEndHandler)
             currentVideo.removeEventListener("ended", videoEndHandler);
           videoEndHandler = onVideoEnd.bind(this);
           video.addEventListener("ended", videoEndHandler);
           timerInterval = setInterval(updateTimer, 1000);
+
+          // Start custom duration timer if needed
+          console.log(
+            "Checking if custom duration timer should be started, watchDuration:",
+            watchDuration
+          );
+          if (watchDuration !== "full") {
+            console.log("Starting custom duration timer for new video");
+            startCustomDurationTimer();
+          } else {
+            console.log(
+              "Not starting custom duration timer - watchDuration is 'full'"
+            );
+          }
         }
       }
     }
@@ -175,6 +325,11 @@ if (typeof window.fbReelsAutoScrollLoaded === "undefined") {
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
+    }
+
+    if (customDurationTimer) {
+      clearTimeout(customDurationTimer);
+      customDurationTimer = null;
     }
     if (videoEndHandler && currentVideo) {
       currentVideo.removeEventListener("ended", videoEndHandler);
