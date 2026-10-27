@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReelFlow - AutoScroll & Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>ReelFlow</h1>
+          <span class="version-tag">v1.0</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-open-dashboard" class="icon-link-btn" title="Open Full Analytics Dashboard">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Master AutoScroll Switch Banner -->
+    <div class="master-toggle-card">
+      <div class="toggle-info">
+        <span class="toggle-title">Auto-Scroll Engine</span>
+        <span class="toggle-status" id="master-status-text">Active & Scrolling</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="master-switch" checked>
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <!-- Time Period Filter Tabs -->
+    <div class="time-tabs">
+      <button class="time-tab active" data-period="today">Today</button>
+      <button class="time-tab" data-period="allTime">All-Time</button>
+    </div>
+
+    <!-- Primary Metric Cards -->
+    <div class="stats-grid">
+      <!-- Time Wasted Highlight Card -->
+      <div class="stat-card primary-card">
+        <div class="card-icon time-icon">
+          <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">Total Time Wasted</span>
+          <div class="stat-value" id="val-time-wasted">0m 00s</div>
+        </div>
+        <div class="reality-pill" id="reality-check-pill">
+          <span class="reality-text">Tracking your reel sessions</span>
+        </div>
+      </div>
+
+      <div class="sub-stats-row">
+        <!-- Reels Watched -->
+        <div class="stat-card">
+          <div class="card-icon reels-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Reels Watched</span>
+            <div class="stat-value" id="val-reels-count">0</div>
+          </div>
+        </div>
+
+        <!-- Ads Skipped -->
+        <div class="stat-card">
+          <div class="card-icon ads-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Ads Skipped</span>
+            <div class="stat-value" id="val-ads-skipped">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Breakdown Section -->
+    <div class="section-card platform-section">
+      <div class="section-header">
+        <span class="section-title">Where You Spend The Most Time</span>
+        <span class="top-tag" id="top-platform-badge">No data yet</span>
+      </div>
+
+      <div class="platform-bars">
+        <!-- Instagram -->
+        <div class="platform-item" id="row-instagram">
+          <div class="plat-info">
+            <div class="plat-name">
+              <span class="plat-dot ig-dot"></span>
+              <span>Instagram Reels</span>
+            </div>
+            <div class="plat-metrics">
+              <span class="plat-time" id="ig-time">0m</span>
+              <span class="plat-percent" id="ig-percent">0%</span>
+            </div>
+          </div>
+          <div class="plat-progress-bg">
+            <div class="plat-progress-bar ig-bar" id="ig-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- YouTube Shorts -->
+        <div class="platform-item" id="row-youtube">
+          <div class="plat-info">
+            <div class="plat-name">
+              <span class="plat-dot yt-dot"></span>
+              <span>YouTube Shorts</span>
+            </div>
+            <div class="plat-metrics">
+              <span class="plat-time" id="yt-time">0m</span>
+              <span class="plat-percent" id="yt-percent">0%</span>
+            </div>
+          </div>
+          <div class="plat-progress-bg">
+            <div class="plat-progress-bar yt-bar" id="yt-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Facebook Reels -->
+        <div class="platform-item" id="row-facebook">
+          <div class="plat-info">
+            <div class="plat-name">
+              <span class="plat-dot fb-dot"></span>
+              <span>Facebook Reels</span>
+            </div>
+            <div class="plat-metrics">
+              <span class="plat-time" id="fb-time">0m</span>
+              <span class="plat-percent" id="fb-percent">0%</span>
+            </div>
+          </div>
+          <div class="plat-progress-bg">
+            <div class="plat-progress-bar fb-bar" id="fb-bar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Settings & Controls -->
+    <div class="section-card controls-section">
+      <div class="section-header">
+        <span class="section-title">Quick Settings</span>
+      </div>
+
+      <!-- Skip Ads Toggle -->
+      <div class="setting-row">
+        <div class="setting-desc">
+          <span class="setting-title">Auto-Skip Sponsored Ads</span>
+          <span class="setting-subtitle">Scrolls past ads immediately</span>
+        </div>
+        <label class="switch mini-switch">
+          <input type="checkbox" id="setting-skip-ads" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <!-- Scroll Delay Slider -->
+      <div class="setting-row delay-setting">
+        <div class="setting-desc">
+          <span class="setting-title">Delay After Reel Ends</span>
+          <span class="setting-subtitle" id="delay-label">0.5 seconds</span>
+        </div>
+        <input type="range" id="setting-delay-range" min="0.1" max="3.0" step="0.1" value="0.5" class="range-slider">
+      </div>
+
+      <!-- Platforms Enabled Toggles -->
+      <div class="platforms-chips">
+        <button class="chip active" data-platform="youtube" id="chip-yt">YouTube</button>
+        <button class="chip active" data-platform="instagram" id="chip-ig">Instagram</button>
+        <button class="chip active" data-platform="facebook" id="chip-fb">Facebook</button>
+      </div>
+    </div>
+
+    <!-- Footer Controls -->
+    <footer class="footer">
+      <button id="btn-reset-stats" class="text-btn danger-text">Reset Stats</button>
+      <button id="btn-dashboard-link" class="text-btn accent-text">Detailed Insights &rarr;</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

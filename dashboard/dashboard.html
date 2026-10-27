@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReelFlow - Analytics Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </div>
+        <div>
+          <h1>ReelFlow</h1>
+          <span>Analytics Dashboard</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="overview">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Overview
+        </button>
+        <button class="nav-item" data-view="history">
+          <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+          History
+        </button>
+        <button class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="reality-card">
+          <div class="reality-icon">💡</div>
+          <div class="reality-content">
+            <span class="reality-title">Reality Check</span>
+            <p id="sidebar-reality">Loading your stats...</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Overview View -->
+      <section class="view active" id="view-overview">
+        <header class="page-header">
+          <div>
+            <h2>Overview</h2>
+            <p class="page-subtitle">Your short-form video consumption at a glance</p>
+          </div>
+          <div class="header-right">
+            <select id="range-select" class="range-select">
+              <option value="7">Last 7 days</option>
+              <option value="14">Last 14 days</option>
+              <option value="30" selected>Last 30 days</option>
+            </select>
+          </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon violet">
+              <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Time Wasted</span>
+              <span class="kpi-value" id="kpi-total-time">0h 0m</span>
+              <span class="kpi-delta" id="kpi-time-delta">All-time</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon pink">
+              <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Reels Watched</span>
+              <span class="kpi-value" id="kpi-total-reels">0</span>
+              <span class="kpi-delta" id="kpi-reels-delta">All-time</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon cyan">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Ads Skipped</span>
+              <span class="kpi-value" id="kpi-total-ads">0</span>
+              <span class="kpi-delta" id="kpi-ads-delta">Time saved</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon green">
+              <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+            </div>
+            <div class="kpi-body">
+              <span class="kpi-label">Daily Average</span>
+              <span class="kpi-value" id="kpi-daily-avg">0m</span>
+              <span class="kpi-delta" id="kpi-peak-day">No data</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Daily Watch Time</h3>
+              <p class="chart-subtitle">Time spent on reels & shorts per day</p>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-dot ig"></span>Instagram</span>
+              <span class="legend-item"><span class="legend-dot yt"></span>YouTube</span>
+              <span class="legend-item"><span class="legend-dot fb"></span>Facebook</span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="history-chart" height="260"></canvas>
+          </div>
+        </div>
+
+        <!-- Platform breakdown + Insights -->
+        <div class="two-col">
+          <div class="panel">
+            <h3>Platform Breakdown</h3>
+            <div class="donut-wrap">
+              <canvas id="donut-chart" width="180" height="180"></canvas>
+              <div class="donut-center">
+                <span id="donut-total">0h</span>
+                <small>total</small>
+              </div>
+            </div>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+
+          <div class="panel">
+            <h3>Insights</h3>
+            <div class="insights-list" id="insights-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- History View -->
+      <section class="view" id="view-history">
+        <header class="page-header">
+          <div>
+            <h2>History</h2>
+            <p class="page-subtitle">Day-by-day breakdown of your activity</p>
+          </div>
+          <button class="btn-secondary" id="btn-export">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Export CSV
+          </button>
+        </header>
+
+        <div class="table-card">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Instagram</th>
+                <th>YouTube</th>
+                <th>Facebook</th>
+                <th>Reels</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr><td colspan="6" class="empty-state">No history yet. Start watching reels!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Settings View -->
+      <section class="view" id="view-settings">
+        <header class="page-header">
+          <div>
+            <h2>Settings</h2>
+            <p class="page-subtitle">Customize ReelFlow behavior</p>
+          </div>
+        </header>
+
+        <div class="settings-grid">
+          <div class="settings-panel">
+            <h3>Auto-Scroll</h3>
+
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">Master Switch</span>
+                <span class="setting-subtitle">Enable or disable auto-scrolling globally</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-master"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">Auto-Skip Ads</span>
+                <span class="setting-subtitle">Skip sponsored content instantly</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-skip-ads"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-row column">
+              <div class="setting-desc">
+                <span class="setting-title">Scroll Delay</span>
+                <span class="setting-subtitle" id="set-delay-label">0.5 seconds after reel ends</span>
+              </div>
+              <input type="range" id="set-delay" min="0.1" max="3.0" step="0.1" value="0.5" class="range-slider">
+            </div>
+
+            <div class="setting-row column">
+              <div class="setting-desc">
+                <span class="setting-title">Max Watch Duration</span>
+                <span class="setting-subtitle" id="set-max-label">Unlimited (skip after this many seconds)</span>
+              </div>
+              <input type="range" id="set-max" min="0" max="120" step="5" value="0" class="range-slider">
+            </div>
+          </div>
+
+          <div class="settings-panel">
+            <h3>Platforms</h3>
+            <p class="panel-hint">Choose which platforms ReelFlow acts on</p>
+
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">YouTube Shorts</span>
+                <span class="setting-subtitle">youtube.com/shorts</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-yt"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">Instagram Reels</span>
+                <span class="setting-subtitle">instagram.com/reels</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-ig"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">Facebook Reels</span>
+                <span class="setting-subtitle">facebook.com/reel</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-fb"><span class="slider round"></span></label>
+            </div>
+
+            <h3 style="margin-top: 24px;">Display</h3>
+            <div class="setting-row">
+              <div class="setting-desc">
+                <span class="setting-title">On-Screen HUD</span>
+                <span class="setting-subtitle">Show floating counter overlay while scrolling</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="set-hud"><span class="slider round"></span></label>
+            </div>
+
+            <div class="danger-zone">
+              <div class="setting-desc">
+                <span class="setting-title danger">Reset All Statistics</span>
+                <span class="setting-subtitle">Permanently delete all tracking data</span>
+              </div>
+              <button class="btn-danger" id="btn-reset">Reset</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
