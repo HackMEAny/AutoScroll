@@ -40,7 +40,14 @@ The tag triggers `.github/workflows/release.yml`, which:
   the root so "Load unpacked" works),
 - attaches it to a GitHub Release.
 
-`.github/workflows/ci.yml` runs validation and the zip-layout check on every push and PR.
+`.github/workflows/ci.yml` runs on every push and PR:
+
+- **validate** — manifest + zip layout, so a broken package can't reach a release,
+- **smoke / chromium** and **smoke / brave** — loads the unpacked extension in a real browser and
+  asserts the service worker starts and the popup renders.
+
+Branded Chrome and Edge can't be driven this way (they ignore `--load-extension` since v137), which
+is why the CI matrix uses unbranded Chromium and Brave instead. Test Edge by hand with TC-01c.
 
 ## Publishing to a store
 

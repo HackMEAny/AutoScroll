@@ -72,8 +72,9 @@ store, installing from there switches you to automatic updates.
 | Firefox | **Not supported yet** — needs a separate Manifest V3 build |
 | Safari | **Not supported** — extensions need an Xcode project |
 
-Load-tested on Chromium 156 and Brave 1.98 (service worker starts, popup renders, no errors). Chrome
-and Edge run the same engine and the same package, so the only difference is how you install it.
+Load-tested on Chromium 156 and Brave 1.98 (service worker starts, popup renders, no errors), and
+re-tested automatically on every push. Chrome and Edge run the same engine and the same package, so
+the only difference is how you install it.
 
 ## Privacy
 

@@ -18,3 +18,39 @@ jobs:
         run: |
           unzip -Z1 dist/reelflow.zip
           test "$(unzip -Z1 dist/reelflow.zip | head -1)" = "manifest.json"
+
+  # Loads the unpacked extension in a real browser: service worker must start and
+  # the popup must render. Branded Chrome/Edge ignore --load-extension, so the
+  # unbranded Chromium that Playwright ships and Brave are the ones we can drive.
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, brave]
+    name: smoke / ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Chromium
+        if: matrix.browser == 'chromium'
+        run: npx --yes playwright@1.56.1 install --with-deps chromium
+
+      - name: Install Brave
+        if: matrix.browser == 'brave'
+        run: |
+          sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+            https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+          sudo apt-get update -qq
+          sudo apt-get install -y brave-browser
+
+      - name: Smoke test
+        run: |
+          if [ "${{ matrix.browser }}" = "brave" ]; then
+            BIN=brave-browser
+          else
+            BIN=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome | head -1)
+          fi
+          node scripts/smoke.js "$BIN"
