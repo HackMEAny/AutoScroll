@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest and tag
+        run: node scripts/validate.js
+      - name: Build zip
+        run: bash scripts/package.sh "dist/reelflow-$GITHUB_REF_NAME.zip"
+      - name: Publish release with zip attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "dist/reelflow-$GITHUB_REF_NAME.zip" --generate-notes

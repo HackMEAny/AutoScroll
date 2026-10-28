@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest
+        run: node scripts/validate.js
+      - name: Build zip
+        run: bash scripts/package.sh dist/reelflow.zip
+      - name: Check zip loads unpacked (manifest at root)
+        run: |
+          unzip -Z1 dist/reelflow.zip
+          test "$(unzip -Z1 dist/reelflow.zip | head -1)" = "manifest.json"

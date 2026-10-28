@@ -24,3 +24,6 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# Build output
+dist/
