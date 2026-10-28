@@ -184,6 +184,16 @@ function renderOverview() {
   const dailyAvgSeconds = totalTime / daysCount;
   document.getElementById('kpi-daily-avg').textContent = formatDuration(dailyAvgSeconds);
 
+  // Busiest day of the period
+  const peak = dailyKeys.reduce((best, key) => {
+    const d = cachedStats.daily[key] || {};
+    const time = ['youtube', 'instagram', 'facebook'].reduce((sum, p) => sum + (d[p]?.time || 0), 0);
+    return time > best.time ? { time } : best;
+  }, { time: 0 });
+  document.getElementById('kpi-peak-day').textContent = peak.time
+    ? `Peak ${formatDuration(peak.time)}`
+    : 'No data';
+
   // Reality check
   const realityText = getRealityText(totalTime, totalReels);
   document.getElementById('sidebar-reality').textContent = realityText;
