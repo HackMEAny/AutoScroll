@@ -7,7 +7,8 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    # ubuntu-latest moved to 26.04, which Playwright cannot drive yet.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Validate manifest
@@ -23,7 +24,7 @@ jobs:
   # the popup must render. Branded Chrome/Edge ignore --load-extension, so the
   # unbranded Chromium that Playwright ships and Brave are the ones we can drive.
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
