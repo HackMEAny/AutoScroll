@@ -12,6 +12,10 @@ for (const key of ['manifest_version', 'name', 'version', 'description']) {
 }
 if (manifest.manifest_version !== 3) errors.push('manifest_version must be 3');
 if (!/^\d+\.\d+\.\d+$/.test(manifest.version)) errors.push(`version "${manifest.version}" is not x.y.z`);
+// Store schema rejects longer; the zip uploads but the listing fails validation.
+if (manifest.description.length > 132) {
+  errors.push(`description is ${manifest.description.length} chars, store limit is 132`);
+}
 for (const size of [16, 48, 128]) {
   if (!manifest.icons?.[size]) errors.push(`icons.${size} is required`);
 }

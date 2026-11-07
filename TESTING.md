@@ -24,7 +24,7 @@ Developer mode → Load unpacked.
 
 | ID | Pri | Area | Steps | Expected |
 | --- | --- | --- | --- | --- |
-| TC-01 | P0 | Install | Load the zip folder, open the extensions page | Card shows ReelFlow 1.0.0, icon renders, no "Errors" button |
+| TC-01 | P0 | Install | Load the zip folder, open the extensions page | Card shows ReelFlow and the version in `manifest.json`, icon renders, no "Errors" button |
 | TC-01b | P1 | Browser matrix | Run `node scripts/smoke.js chromium` and `node scripts/smoke.js brave` | Both print `PASS ... worker + popup ok` |
 | TC-01c | P1 | Edge | Load the zip by hand in Edge | Same as TC-01 — this is the browser you publish to for free |
 | TC-02 | P0 | Popup | Click the toolbar icon | Popup opens, no red errors in the popup console |

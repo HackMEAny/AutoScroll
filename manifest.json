@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ReelFlow - AutoScroll & Time Tracker",
-  "version": "1.0.0",
-  "description": "Auto-scroll Reels & Shorts on YouTube, Instagram, & Facebook. Skip ads instantly, and track how many reels and time you spend watching.",
+  "version": "1.0.1",
+  "description": "Auto-scroll Reels & Shorts on YouTube, Instagram and Facebook. Skip ads instantly, track the reels and time you watch.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
